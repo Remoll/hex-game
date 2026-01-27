@@ -2,89 +2,35 @@ package com.hexgame;
 
 import javax.swing.JPanel;
 import java.awt.*;
+import java.util.HashMap;
 
 public class GamePanel extends JPanel {
 
-    private int radius = 40; // Rozmiar heksagonu
+    private int radius = 40;
 
-    private HexField[] gameMap = {
-            new HexField(0,0),
-            new HexField(0,1),
-            new HexField(0,-1),
-            new HexField(0,2),
-            new HexField(0,-2),
-            new HexField(0,3),
-            new HexField(0,-3),
-            new HexField(0,4),
-            new HexField(0,-4),
+    private HashMap<HexField, HexField> generateHexMap(int width, int height) {
+        HashMap<HexField, HexField> newHexMap = new HashMap<>();
 
-            new HexField(1,0),
-            new HexField(1,1),
-            new HexField(1,-1),
-            new HexField(1,2),
-            new HexField(1,-2),
-            new HexField(1,3),
-            new HexField(1,-3),
-            new HexField(1,4),
-            new HexField(1,-4),
+        // Promień zasięgu od środka (dla 7x7 jest to 3 w każdą stronę)
+        int halfW = width / 2;
+        int halfH = height / 2;
 
-            new HexField(-1,0),
-            new HexField(-1,1),
-            new HexField(-1,-1),
-            new HexField(-1,2),
-            new HexField(-1,-2),
-            new HexField(-1,3),
-            new HexField(-1,-3),
-            new HexField(-1,4),
-            new HexField(-1,-4),
+        for (int q = -halfW; q <= halfW; q++) {
+            // Obliczamy "pływający" offset dla osi R,
+            // aby wizualnie rzędy były wyrównane do prostokąta
+            int rOffset = (int) Math.floor(q / 2.0);
 
-            new HexField(2,0),
-            new HexField(2,1),
-            new HexField(2,-1),
-            new HexField(2,2),
-            new HexField(2,-2),
-            new HexField(2,3),
-            new HexField(2,-3),
-            new HexField(2,4),
-            new HexField(2,-4),
+            for (int vRow = -halfH; vRow <= halfH; vRow++) {
+                int r = vRow - rOffset;
 
-            new HexField(-2,0),
-            new HexField(-2,1),
-            new HexField(-2,-1),
-            new HexField(-2,2),
-            new HexField(-2,-2),
-            new HexField(-2,3),
-            new HexField(-2,-3),
-            new HexField(-2,4),
-            new HexField(-2,-4),
+                HexField field = new HexField(q, r);
+                newHexMap.put(field, field);
+            }
+        }
+        return newHexMap;
+    }
 
-            new HexField(3,0),
-            new HexField(3,1),
-            new HexField(3,-1),
-            new HexField(3,2),
-            new HexField(3,-2),
-            new HexField(3,3),
-            new HexField(3,-3),
-            new HexField(3,4),
-            new HexField(3,-4),
-
-            new HexField(-3,0),
-            new HexField(-3,1),
-            new HexField(-3,-1),
-            new HexField(-3,2),
-            new HexField(-3,-2),
-            new HexField(-3,3),
-            new HexField(-3,-3),
-            new HexField(-3,4),
-            new HexField(-3,-4),
-
-
-
-            new HexField(6,-3),
-            new HexField(7,-3),
-
-
-    };
+    HashMap<HexField, HexField> gameMap = generateHexMap(15,9);
 
     public GamePanel() {
         // Ustawiamy kolor tła panelu
@@ -117,12 +63,11 @@ public class GamePanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // TUTAJ będziesz wpisywać logikę rysowania heksów
-
-        for (HexField hexField : gameMap) {
+        gameMap.forEach((coord, field) -> {
             int offsetX = getWidth() / 2;
             int offsetY = getHeight() / 2;
-            double x = radius * 1.5 * hexField.q;
-            double y = radius * Math.sqrt(3) * (hexField.r + hexField.q / 2.0);
+            double x = radius * 1.5 * field.q;
+            double y = radius * Math.sqrt(3) * (field.r + field.q / 2.0);
 
             // 2. Tworzymy kształt heksagonu
             Polygon hex = createHexagon((int)x + offsetX, (int)y + offsetY, radius);
@@ -135,6 +80,9 @@ public class GamePanel extends JPanel {
             g2d.setColor(Color.WHITE);
             g2d.setStroke(new BasicStroke(2)); // Grubość linii
             g2d.drawPolygon(hex);
-        }
+
+            String hexCords = "q=" + field.q + " r=" + field.r;
+            g2d.drawString(hexCords, (int)x + offsetX - 20, (int)y + offsetY);
+        });
     }
 }
